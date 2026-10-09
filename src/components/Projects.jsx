@@ -4,95 +4,106 @@ import ErrorMessage from './ErrorMessage.jsx';
 import './Projects.css';
 
 /**
- * Projects Component (Practical 3: Dynamic GitHub REST API Integration)
+ * Projects Component (Practical 3: Enhanced Multi-Mode GitHub API Integration)
  *
- * Features:
- * 1. Asynchronous fetch using useEffect + useState (repos, loading, error).
- * 2. Dynamic GitHub user switching: can query any user (e.g. Smit-Makwana, DHRUPAL5404).
- * 3. Handles full paths like "DHRUPAL5404/Amazon" by extracting the user and auto-filtering.
- * 4. Conditional rendering of Spinner, ErrorMessage with Retry, and Repo cards.
- * 5. Star count ⭐, fork count 🍴, and live repository search.
+ * Supported Modes:
+ * 1. User Mode ("user"): Fetches all repos for a specific GitHub user.
+ * 2. Global Mode ("global"): Searches ALL repositories across ALL GitHub users by name/keyword.
  */
 function Projects() {
-  // ── States ──
+  // Mode selection: 'user' or 'global'
+  const [searchMode, setSearchMode] = useState('user');
+
+  // Repositories and async state
   const [repos, setRepos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Active GitHub username being queried
+  // User Mode states
   const [targetUser, setTargetUser] = useState('Smit-Makwana');
-
-  // Username input box state
   const [userInput, setUserInput] = useState('Smit-Makwana');
 
-  // Filter within fetched repositories (repo name/description)
-  const [searchTerm, setSearchTerm] = useState('');
+  // Global Search Mode state
+  const [globalQuery, setGlobalQuery] = useState('Amazon');
+  const [globalInput, setGlobalInput] = useState('Amazon');
+
+  // Local filter within loaded repos
+  const [localFilter, setLocalFilter] = useState('');
 
   // Retry / refetch counter
   const [fetchTrigger, setFetchTrigger] = useState(0);
 
-  // Fallback curated projects in case API fails or is rate-limited
+  // Fallback curated projects
   const fallbackProjects = [
     {
       id: 101,
       name: 'portfolio-Smit',
-      html_url: `https://github.com/Smit-Makwana/portfolio-Smit`,
+      full_name: 'Smit-Makwana/portfolio-Smit',
+      html_url: 'https://github.com/Smit-Makwana/portfolio-Smit',
       description: 'Advanced Web Development Frameworks (ITUE301) — React Vite Portfolio with React Router v6 & REST API integration.',
       stargazers_count: 5,
       forks_count: 2,
       language: 'JavaScript',
+      owner: { login: 'Smit-Makwana' },
     },
     {
       id: 102,
       name: 'ecommerce-react-store',
-      html_url: `https://github.com/Smit-Makwana/ecommerce-react-store`,
+      full_name: 'Smit-Makwana/ecommerce-react-store',
+      html_url: 'https://github.com/Smit-Makwana/ecommerce-react-store',
       description: 'A responsive e-commerce web application with cart management, local storage persistence, and checkout workflow.',
       stargazers_count: 12,
       forks_count: 4,
       language: 'React',
+      owner: { login: 'Smit-Makwana' },
     },
     {
       id: 103,
       name: 'taskflow-kanban',
-      html_url: `https://github.com/Smit-Makwana/taskflow-kanban`,
+      full_name: 'Smit-Makwana/taskflow-kanban',
+      html_url: 'https://github.com/Smit-Makwana/taskflow-kanban',
       description: 'Kanban-style task manager featuring drag-and-drop support, filter tabs, and responsive glassmorphism UI.',
       stargazers_count: 8,
       forks_count: 3,
       language: 'TypeScript',
-    },
-    {
-      id: 104,
-      name: 'weather-radar-app',
-      html_url: `https://github.com/Smit-Makwana/weather-radar-app`,
-      description: 'Live weather forecasting application consuming OpenWeatherMap REST API with async/await and geolocation.',
-      stargazers_count: 6,
-      forks_count: 1,
-      language: 'JavaScript',
+      owner: { login: 'Smit-Makwana' },
     },
   ];
 
-  // ── Fetch Repositories from Target User ──
+  // ── Core Fetch Effect ──
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
     setError(null);
 
-    const cleanUser = targetUser.trim();
-    if (!cleanUser) {
-      setLoading(false);
-      return;
-    }
+    let apiUrl = '';
 
-    const apiUrl = `https://api.github.com/users/${encodeURIComponent(cleanUser)}/repos?sort=updated&per_page=30`;
+    if (searchMode === 'user') {
+      // User Mode: fetch target user's repos
+      const user = targetUser.trim();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      apiUrl = `https://api.github.com/users/${encodeURIComponent(user)}/repos?sort=updated&per_page=30`;
+    } else {
+      // Global Search Mode: query all users across all of GitHub!
+      const query = globalQuery.trim();
+      if (!query) {
+        setLoading(false);
+        return;
+      }
+      apiUrl = `https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=30`;
+    }
 
     fetch(apiUrl)
       .then((res) => {
         if (!res.ok) {
           if (res.status === 404) {
-            throw new Error(`GitHub user "${cleanUser}" was not found.`);
+            throw new Error(`GitHub user "${targetUser}" not found.`);
           }
           if (res.status === 403) {
-            throw new Error('GitHub API rate limit exceeded. Please wait a minute or try again.');
+            throw new Error('GitHub API rate limit reached. Please wait a moment and try again.');
           }
           throw new Error(`HTTP error ${res.status}: ${res.statusText}`);
         }
@@ -100,73 +111,86 @@ function Projects() {
       })
       .then((data) => {
         if (!isMounted) return;
-        if (Array.isArray(data)) {
-          if (data.length === 0) {
-            setRepos([]);
+
+        if (searchMode === 'global') {
+          // Global search API returns { items: [...] }
+          if (Array.isArray(data.items)) {
+            setRepos(data.items);
           } else {
-            setRepos(data);
+            setRepos([]);
           }
         } else {
-          setRepos(fallbackProjects);
+          // User API returns an array directly
+          if (Array.isArray(data)) {
+            setRepos(data.length > 0 ? data : []);
+          } else {
+            setRepos(fallbackProjects);
+          }
         }
       })
       .catch((err) => {
         if (!isMounted) return;
         console.warn('API fetch issue:', err.message);
-        // If error occurred fetching Smit-Makwana specifically, show fallback; otherwise show user-friendly error
-        if (cleanUser.toLowerCase() === 'smit-makwana') {
+        if (searchMode === 'user' && targetUser.toLowerCase() === 'smit-makwana') {
           setRepos(fallbackProjects);
         } else {
           setError(err.message);
         }
       })
       .finally(() => {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       });
 
     return () => {
       isMounted = false;
     };
-  }, [targetUser, fetchTrigger]);
+  }, [searchMode, targetUser, globalQuery, fetchTrigger]);
 
-  // Handle User Change form submission
+  // Form submit for User Mode
   const handleUserSubmit = (e) => {
     e.preventDefault();
-    let val = userInput.trim();
+    const val = userInput.trim();
     if (!val) return;
 
-    // If input format is "User/Repo" (like DHRUPAL5404/Amazon), split them!
+    // If format is User/Repo, auto-switch to Global search or split
     if (val.includes('/')) {
-      const parts = val.split('/');
-      const parsedUser = parts[0].trim();
-      const parsedRepo = parts[1].trim();
-      setTargetUser(parsedUser);
-      setUserInput(parsedUser);
-      setSearchTerm(parsedRepo);
+      const [u, r] = val.split('/');
+      setTargetUser(u.trim());
+      setUserInput(u.trim());
+      setLocalFilter(r.trim());
     } else {
       setTargetUser(val);
-      setSearchTerm('');
+      setLocalFilter('');
     }
   };
 
-  // Quick switch chips handler
-  const handleChipClick = (username) => {
-    setUserInput(username);
-    setTargetUser(username);
-    setSearchTerm('');
+  // Form submit for Global Search Mode (search across ALL users)
+  const handleGlobalSubmit = (e) => {
+    e.preventDefault();
+    const q = globalInput.trim();
+    if (q) {
+      setGlobalQuery(q);
+      setLocalFilter('');
+    }
   };
 
-  // Retry / refresh handler
-  const handleRetry = () => {
-    setFetchTrigger((prev) => prev + 1);
+  // Quick switch chips
+  const handleChipClick = (user) => {
+    setUserInput(user);
+    setTargetUser(user);
+    setLocalFilter('');
   };
 
-  // Filter repositories locally by search term
+  const handleGlobalChipClick = (keyword) => {
+    setGlobalInput(keyword);
+    setGlobalQuery(keyword);
+    setLocalFilter('');
+  };
+
+  // Filter local results
   const filteredRepos = repos.filter((repo) => {
-    const q = searchTerm.toLowerCase();
-    const nameMatch = repo.name?.toLowerCase().includes(q);
+    const q = localFilter.toLowerCase();
+    const nameMatch = repo.name?.toLowerCase().includes(q) || repo.full_name?.toLowerCase().includes(q);
     const descMatch = repo.description?.toLowerCase().includes(q);
     const langMatch = repo.language?.toLowerCase().includes(q);
     return nameMatch || descMatch || langMatch;
@@ -175,76 +199,132 @@ function Projects() {
   return (
     <section id="projects" className="projects section" aria-label="Projects Section">
       <div className="container">
-        {/* Section Header */}
+        {/* Header */}
         <header className="projects__header">
           <div>
-            <span className="badge">Practical 3 · Dynamic GitHub API</span>
+            <span className="badge">Practical 3 · REST API</span>
           </div>
           <h2 className="section-title">
             Featured <span className="gradient-text">GitHub Repositories</span>
           </h2>
           <p className="projects__subtitle">
-            Query live repositories for any GitHub account using the GitHub REST API.
+            Fetch from a specific user or search across <strong>all GitHub users globally</strong> in real time!
           </p>
         </header>
 
-        {/* ── User Switcher Toolbar ── */}
-        <div className="projects__user-bar">
-          <form className="projects__user-form" onSubmit={handleUserSubmit}>
-            <span className="projects__user-prefix" aria-hidden="true">github.com/</span>
-            <input
-              type="text"
-              className="projects__user-input"
-              placeholder="username or user/repo"
-              value={userInput}
-              onChange={(e) => setUserInput(e.target.value)}
-              aria-label="GitHub username to fetch"
-            />
-            <button type="submit" className="btn btn--primary projects__user-btn">
-              Fetch User Repos
-            </button>
-          </form>
-
-          {/* Quick profile switch chips */}
-          <div className="projects__quick-chips">
-            <span>Quick Select:</span>
-            {['Smit-Makwana', 'DHRUPAL5404', 'charusat', 'facebook'].map((u) => (
-              <button
-                key={u}
-                type="button"
-                className={`projects__chip ${targetUser.toLowerCase() === u.toLowerCase() ? 'active' : ''}`}
-                onClick={() => handleChipClick(u)}
-              >
-                {u}
-              </button>
-            ))}
-          </div>
+        {/* ── Mode Selection Tabs ── */}
+        <div className="projects__mode-tabs" role="tablist" aria-label="Search Mode">
+          <button
+            type="button"
+            className={`projects__mode-tab ${searchMode === 'user' ? 'active' : ''}`}
+            onClick={() => setSearchMode('user')}
+          >
+            👤 Specific User Repos
+          </button>
+          <button
+            type="button"
+            className={`projects__mode-tab ${searchMode === 'global' ? 'active' : ''}`}
+            onClick={() => setSearchMode('global')}
+          >
+            🌍 All GitHub Users (Global Repo Search)
+          </button>
         </div>
 
-        {/* ── Filter & Refresh Controls ── */}
+        {/* ── Mode 1: Specific User Search Bar ── */}
+        {searchMode === 'user' && (
+          <div className="projects__user-bar">
+            <form className="projects__user-form" onSubmit={handleUserSubmit}>
+              <span className="projects__user-prefix" aria-hidden="true">github.com/</span>
+              <input
+                type="text"
+                className="projects__user-input"
+                placeholder="e.g. DHRUPAL5404"
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                aria-label="GitHub username"
+              />
+              <button type="submit" className="btn btn--primary projects__user-btn">
+                Fetch User Repos
+              </button>
+            </form>
+
+            <div className="projects__quick-chips">
+              <span>Quick Select:</span>
+              {['Smit-Makwana', 'DHRUPAL5404', 'charusat', 'facebook'].map((u) => (
+                <button
+                  key={u}
+                  type="button"
+                  className={`projects__chip ${targetUser.toLowerCase() === u.toLowerCase() ? 'active' : ''}`}
+                  onClick={() => handleChipClick(u)}
+                >
+                  {u}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Mode 2: Global Search Across ALL Users ── */}
+        {searchMode === 'global' && (
+          <div className="projects__user-bar">
+            <form className="projects__user-form" onSubmit={handleGlobalSubmit} style={{ maxWidth: '480px', width: '100%' }}>
+              <span className="projects__user-prefix" aria-hidden="true">Search All Repos:</span>
+              <input
+                type="text"
+                className="projects__user-input"
+                style={{ width: '100%' }}
+                placeholder="e.g. Amazon, ecommerce, react, portfolio..."
+                value={globalInput}
+                onChange={(e) => setGlobalInput(e.target.value)}
+                aria-label="Search all GitHub repositories"
+              />
+              <button type="submit" className="btn btn--primary projects__user-btn">
+                Search All Users
+              </button>
+            </form>
+
+            <div className="projects__quick-chips">
+              <span>Popular:</span>
+              {['Amazon', 'DHRUPAL5404', 'portfolio', 'react-dashboard'].map((term) => (
+                <button
+                  key={term}
+                  type="button"
+                  className={`projects__chip ${globalQuery.toLowerCase() === term.toLowerCase() ? 'active' : ''}`}
+                  onClick={() => handleGlobalChipClick(term)}
+                >
+                  {term}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Local Filter & Refresh ── */}
         <div className="projects__controls">
-          {/* Local repository filter */}
           <div className="projects__search-wrapper">
             <span className="projects__search-icon" aria-hidden="true">🔍</span>
             <input
               type="text"
               id="projects-search-input"
               className="projects__search-input"
-              placeholder={`Filter @${targetUser}'s repositories...`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              aria-label="Filter repositories"
+              placeholder={
+                searchMode === 'user'
+                  ? `Filter @${targetUser}'s loaded repositories...`
+                  : `Filter "${globalQuery}" results locally...`
+              }
+              value={localFilter}
+              onChange={(e) => setLocalFilter(e.target.value)}
+              aria-label="Filter loaded repositories"
             />
           </div>
 
-          {/* Action buttons */}
           <div className="projects__actions">
             <button
               type="button"
               id="projects-refresh-btn"
               className="projects__btn-action"
-              onClick={handleRetry}
-              title="Refresh API request"
+              onClick={() => setFetchTrigger((prev) => prev + 1)}
+              title="Refresh API"
             >
               🔄 Refresh API
             </button>
@@ -252,48 +332,53 @@ function Projects() {
         </div>
 
         {/* ── Conditional Rendering ── */}
-        {/* State A: Loading */}
-        {loading && <Spinner message={`Fetching repositories for @${targetUser}...`} />}
-
-        {/* State B: Error */}
-        {!loading && error && (
-          <ErrorMessage message={error} onRetry={handleRetry} />
+        {loading && (
+          <Spinner
+            message={
+              searchMode === 'user'
+                ? `Fetching repositories for @${targetUser}...`
+                : `Searching ALL GitHub repositories for "${globalQuery}"...`
+            }
+          />
         )}
 
-        {/* State C: Success */}
+        {!loading && error && (
+          <ErrorMessage message={error} onRetry={() => setFetchTrigger((prev) => prev + 1)} />
+        )}
+
         {!loading && !error && (
           <>
-            {/* Status Bar */}
+            {/* Status bar */}
             <div className="projects__status-bar">
               <span>
-                Showing <strong>{filteredRepos.length}</strong> of {repos.length} repositories for{' '}
-                <strong style={{ color: 'var(--color-accent-tertiary)' }}>@{targetUser}</strong>
+                Showing <strong>{filteredRepos.length}</strong> of {repos.length} repositories{' '}
+                {searchMode === 'user' ? (
+                  <>for <strong style={{ color: 'var(--color-accent-tertiary)' }}>@{targetUser}</strong></>
+                ) : (
+                  <>matching <strong style={{ color: 'var(--color-accent-tertiary)' }}>&ldquo;{globalQuery}&rdquo;</strong> across all users</>
+                )}
               </span>
               <span className="projects__source-badge">
-                ● Live REST API Connected
+                ● Live REST API ({searchMode === 'user' ? 'Users Endpoint' : 'Global Search Endpoint'})
               </span>
             </div>
 
-            {/* Empty Search Result */}
+            {/* Empty results */}
             {filteredRepos.length === 0 ? (
               <div className="projects__empty glass-card">
                 <p style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔍</p>
-                <h3>
-                  {repos.length === 0
-                    ? `No public repositories found for @${targetUser}`
-                    : `No repositories matched "${searchTerm}"`}
-                </h3>
+                <h3>No repositories found</h3>
                 <p style={{ marginTop: '0.5rem', color: 'var(--color-text-secondary)' }}>
-                  {repos.length === 0
-                    ? 'This user currently has 0 public repositories.'
-                    : 'Try clearing the search filter.'}
+                  {localFilter
+                    ? `No loaded repository matched "${localFilter}".`
+                    : 'Try another keyword or user.'}
                 </p>
-                {searchTerm && (
+                {localFilter && (
                   <button
                     type="button"
                     className="btn btn--outline"
                     style={{ marginTop: '1rem' }}
-                    onClick={() => setSearchTerm('')}
+                    onClick={() => setLocalFilter('')}
                   >
                     Clear Filter
                   </button>
@@ -304,20 +389,25 @@ function Projects() {
               <ul className="projects__grid" role="list" aria-label="Repositories list">
                 {filteredRepos.map((repo) => (
                   <li key={repo.id} className="project-card glass-card">
-                    {/* Top Row: Title & Icon */}
                     <div className="project-card__top">
-                      <h3 className="project-card__title">{repo.name}</h3>
+                      <div>
+                        {/* If global mode, show the owner tag */}
+                        {searchMode === 'global' && repo.owner && (
+                          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: '0.2rem' }}>
+                            👤 {repo.owner.login} /
+                          </div>
+                        )}
+                        <h3 className="project-card__title">{repo.name}</h3>
+                      </div>
                       <span className="project-card__repo-icon" aria-hidden="true">
                         📦
                       </span>
                     </div>
 
-                    {/* Description */}
                     <p className="project-card__desc">
                       {repo.description || 'No description provided for this repository.'}
                     </p>
 
-                    {/* Metadata: Language, Stars, Forks, Link */}
                     <div className="project-card__meta">
                       <div className="project-card__stats">
                         {repo.language && (

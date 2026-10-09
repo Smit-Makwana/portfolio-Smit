@@ -18,6 +18,41 @@
   margin: 0.75rem auto 0;
 }
 
+/* Search Mode Tabs (User Repos vs Global All Users Search) */
+.projects__mode-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.projects__mode-tab {
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-full);
+  font-size: 0.88rem;
+  font-weight: 600;
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.projects__mode-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-primary);
+}
+
+.projects__mode-tab.active {
+  background: var(--gradient-hero);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.35);
+}
+
 /* User Switcher / Target Profile Input */
 .projects__user-bar {
   display: flex;
