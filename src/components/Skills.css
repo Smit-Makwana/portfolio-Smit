@@ -1,0 +1,179 @@
+/* Skills Component Styles */
+.skills {
+  position: relative;
+}
+
+.skills__header {
+  text-align: center;
+  margin-bottom: 3.5rem;
+}
+
+.skills__header .badge {
+  margin-bottom: 1rem;
+}
+
+.skills__subtitle {
+  color: var(--color-text-secondary);
+  max-width: 480px;
+  margin: 0.75rem auto 0;
+  font-size: 1rem;
+}
+
+/* Category filter tabs */
+.skills__filters {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.skills__filter-btn {
+  padding: 0.4rem 1.1rem;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: var(--font-primary);
+  transition: all var(--transition-fast);
+}
+
+.skills__filter-btn:hover,
+.skills__filter-btn.active {
+  background: rgba(124, 58, 237, 0.15);
+  border-color: rgba(124, 58, 237, 0.4);
+  color: var(--color-accent-tertiary);
+}
+
+/* Grid of skill cards */
+.skills__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.skill-card {
+  padding: 1.5rem 1.25rem;
+  cursor: default;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.skill-card__top {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.skill-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  background: rgba(124, 58, 237, 0.15);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  transition: background var(--transition-base);
+}
+
+.skill-card:hover .skill-card__icon {
+  background: rgba(124, 58, 237, 0.3);
+}
+
+.skill-card__name {
+  font-size: 0.975rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.15rem;
+}
+
+.skill-card__category {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Progress bar */
+.skill-card__bar-wrap {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.skill-card__bar {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--gradient-hero);
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.skill-card__level {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-align: right;
+  margin-top: -0.5rem;
+}
+
+/* Legend List (raw list render — demonstrates skillList prop) */
+.skills__list-section {
+  margin-top: 3rem;
+}
+
+.skills__list-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.skills__raw-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.skills__raw-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  color: var(--color-accent-cyan);
+  transition: all var(--transition-fast);
+}
+
+.skills__raw-item:hover {
+  background: rgba(6, 182, 212, 0.2);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 640px) {
+  .skills__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 400px) {
+  .skills__grid {
+    grid-template-columns: 1fr;
+  }
+}
