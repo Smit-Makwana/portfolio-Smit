@@ -29,9 +29,6 @@ function Projects() {
   // Retry trigger count (forces useEffect to run again)
   const [fetchTrigger, setFetchTrigger] = useState(0);
 
-  // Testing flag: to deliberately demonstrate the error state
-  const [simulateError, setSimulateError] = useState(false);
-
   // Target GitHub username
   const githubUsername = 'Smit-Makwana';
 
@@ -82,17 +79,6 @@ function Projects() {
     setLoading(true);
     setError(null);
 
-    // If deliberately simulating an error for practical viva/demo
-    if (simulateError) {
-      setTimeout(() => {
-        if (isMounted) {
-          setError('Failed to fetch from https://api.github.com/invalid-broken-endpoint (Simulated Network Error)');
-          setLoading(false);
-        }
-      }, 700);
-      return;
-    }
-
     // Live GitHub REST API Endpoint
     const apiUrl = `https://api.github.com/users/${githubUsername}/repos?sort=updated&per_page=12`;
 
@@ -108,14 +94,12 @@ function Projects() {
         if (Array.isArray(data) && data.length > 0) {
           setRepos(data);
         } else {
-          // If GitHub account currently has 0 repos, use curated fallback repos
           setRepos(fallbackProjects);
         }
       })
       .catch((err) => {
         if (!isMounted) return;
-        console.warn('GitHub API fetch failed or rate-limited, falling back to curated repositories:', err);
-        // If public GitHub rate-limit is encountered, use fallback projects and note it
+        console.warn('GitHub API fetch note:', err);
         setRepos(fallbackProjects);
       })
       .finally(() => {
@@ -127,17 +111,11 @@ function Projects() {
     return () => {
       isMounted = false;
     };
-  }, [fetchTrigger, simulateError]);
+  }, [fetchTrigger]);
 
   // Retry Handler (Supplementary Problem)
   const handleRetry = () => {
-    setSimulateError(false);
     setFetchTrigger((prev) => prev + 1);
-  };
-
-  // Toggle deliberate error for testing error path (Faculty Teaching Guide)
-  const handleToggleErrorDemo = () => {
-    setSimulateError((prev) => !prev);
   };
 
   // Dynamic search filter (Supplementary Problem)
@@ -193,17 +171,6 @@ function Projects() {
               title="Re-trigger fetch request"
             >
               🔄 Refresh API
-            </button>
-
-            {/* Error simulation button for viva demonstration */}
-            <button
-              type="button"
-              id="projects-simulate-error-btn"
-              className={`projects__btn-action ${simulateError ? 'projects__btn-action--danger' : ''}`}
-              onClick={handleToggleErrorDemo}
-              title="Test error boundary state"
-            >
-              {simulateError ? '✓ Restore Normal API' : '⚠️ Test Error State'}
             </button>
           </div>
         </div>
