@@ -1,0 +1,41 @@
+/* ErrorMessage Component Styles */
+.error-card {
+  max-width: 540px;
+  margin: 3rem auto;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
+
+.error-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #f87171;
+  margin-bottom: 0.75rem;
+}
+
+.error-message {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1.75rem;
+  word-break: break-word;
+}
+
+.error-retry-btn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff;
+  margin: 0 auto;
+}
+
+.error-retry-btn:hover {
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.5);
+  transform: translateY(-2px);
+}
