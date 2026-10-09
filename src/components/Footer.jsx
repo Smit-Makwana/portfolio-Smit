@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import './Footer.css';
 
 /**
@@ -9,30 +10,25 @@ import './Footer.css';
 function Footer() {
   const currentYear = new Date().getFullYear();
 
-  const navSections = [
-    { id: 'header',   label: 'Home'     },
-    { id: 'about',    label: 'About'    },
-    { id: 'skills',   label: 'Skills'   },
-    { id: 'projects', label: 'Projects' },
+  const navRoutes = [
+    { to: '/',         label: 'Home'     },
+    { to: '/projects', label: 'Projects' },
+    { to: '/contact',  label: 'Contact'  },
   ];
 
   const contactItems = [
     { icon: '📧', label: 'Email',    value: 'smitmakwana@example.com'        },
     { icon: '📍', label: 'Location', value: 'Ahmedabad, Gujarat, India'   },
-    { icon: '🎓', label: 'Course',   value: 'B.E. Computer Engineering'   },
-    { icon: '🏫', label: 'College',  value: 'GTU Affiliated College'      },
+    { icon: '🎓', label: 'Course',   value: 'B.E. Information Technology'  },
+    { icon: '🏫', label: 'College',  value: 'CSPIT / CHARUSAT'            },
   ];
 
   const socialLinks = [
-    { id: 'footer-github',   label: 'GitHub',   icon: '🐙', href: 'https://github.com' },
+    { id: 'footer-github',   label: 'GitHub',   icon: '🐙', href: 'https://github.com/Smit-Makwana' },
     { id: 'footer-linkedin', label: 'LinkedIn', icon: '💼', href: 'https://linkedin.com' },
     { id: 'footer-twitter',  label: 'Twitter',  icon: '🐦', href: 'https://twitter.com' },
     { id: 'footer-email',    label: 'Email',    icon: '✉️', href: 'mailto:smitmakwana@example.com' },
   ];
-
-  const scrollToSection = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-  };
 
   return (
     <footer id="footer" className="footer" role="contentinfo" aria-label="Site Footer">
@@ -41,10 +37,12 @@ function Footer() {
         <div className="footer__grid">
           {/* Column 1 — Brand */}
           <div>
-            <h2 className="footer__brand-name gradient-text">&lt;Portfolio /&gt;</h2>
+            <Link to="/" className="footer__brand-name gradient-text" style={{ textDecoration: 'none', display: 'inline-block' }}>
+              &lt;Smit.dev /&gt;
+            </Link>
             <p className="footer__brand-bio">
-              A React-powered student portfolio built as part of ITUE301 — Advanced Web
-              Development Frameworks, demonstrating reusable component architecture.
+              A modern React SPA built as part of ITUE301 — Advanced Web
+              Development Frameworks, showcasing React Router v6 &amp; reactive state management.
             </p>
 
             {/* Social Links */}
@@ -66,27 +64,26 @@ function Footer() {
             </div>
           </div>
 
-          {/* Column 2 — Quick Nav */}
+          {/* Column 2 — SPA Navigation */}
           <nav aria-label="Footer navigation">
             <h3 className="footer__col-title">Navigate</h3>
             <ul className="footer__links" role="list">
-              {navSections.map(({ id, label }) => (
-                <li key={id}>
-                  <button
-                    id={`footer-nav-${id}`}
+              {navRoutes.map(({ to, label }) => (
+                <li key={to}>
+                  <Link
+                    to={to}
                     className="footer__link"
-                    onClick={() => scrollToSection(id)}
-                    aria-label={`Jump to ${label} section`}
+                    style={{ textDecoration: 'none', display: 'inline-block' }}
                   >
                     {label}
-                  </button>
+                  </Link>
                 </li>
               ))}
             </ul>
           </nav>
 
           {/* Column 3 — Contact */}
-          <address aria-label="Contact information">
+          <address aria-label="Contact information" style={{ fontStyle: 'normal' }}>
             <h3 className="footer__col-title">Contact</h3>
             <ul className="footer__contact-list" role="list">
               {contactItems.map(({ icon, label, value }) => (
@@ -105,10 +102,10 @@ function Footer() {
         {/* Bottom Bar */}
         <div className="footer__bottom">
           <p className="footer__copyright">
-            © {currentYear} <span>Smit Makwana</span>. All rights reserved.
+            © {currentYear} <span>Smit Makwana</span> · 24IT046. All rights reserved.
           </p>
           <p className="footer__tagline">
-            Built with <span className="footer__heart">♥</span> using React &amp; Vite
+            Built with <span className="footer__heart">♥</span> using React Router v6 &amp; Vite
           </p>
         </div>
       </div>

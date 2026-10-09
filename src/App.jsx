@@ -1,57 +1,78 @@
 /**
- * App.jsx — Root Component
- * ITUE301 Practical 1: Introduction to React and Component Architecture
+ * App.jsx — Root Application Component
+ * CHAROTAR UNIVERSITY OF SCIENCE AND TECHNOLOGY (CHARUSAT)
+ * Advanced Web Development Frameworks (ITUE301)
+ * Practical 2: State Management and Routing in React
  *
- * Component Tree:
- *   App
- *   ├── NavBar      (scroll-spy navigation — supplementary)
- *   ├── Header      (receives: name, themeColor, rollNo props)
- *   ├── About       (independently structured, no props)
- *   ├── Skills      (receives: skillList prop — rendered dynamically)
- *   ├── Projects    (independently structured, no props — post-lab assignment)
- *   └── Footer      (independently structured, no props)
- *
- * Props passed from App:
- *   → Header   : name, themeColor, rollNo
- *   → Skills   : skillList (array of strings)
+ * Architecture:
+ *   BrowserRouter (in main.jsx)
+ *   └── App
+ *       ├── NavBar (SPA navigation with NavLink + Theme Toggle)
+ *       ├── Routes
+ *       │   ├── Route: "/"          → Home.jsx
+ *       │   ├── Route: "/projects"  → ProjectsPage.jsx
+ *       │   ├── Route: "/contact"   → Contact.jsx (Controlled input + useState)
+ *       │   └── Route: "*"          → NotFound.jsx (404 Fallback)
+ *       └── Footer
  */
 
 import { useState, useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import './App.css';
 
-// Component imports
-import NavBar   from './components/NavBar.jsx';
-import Header   from './components/Header.jsx';
-import About    from './components/About.jsx';
-import Skills   from './components/Skills.jsx';
-import Projects from './components/Projects.jsx';
-import Footer   from './components/Footer.jsx';
+// Components
+import NavBar from './components/NavBar.jsx';
+import Footer from './components/Footer.jsx';
+
+// Route Pages
+import Home from './pages/Home.jsx';
+import ProjectsPage from './pages/Projects.jsx';
+import Contact from './pages/Contact.jsx';
+import NotFound from './pages/NotFound.jsx';
 
 function App() {
+  // useState variable #1 (Theme Toggle — Supplementary Problem)
+  // Controls dark/light mode class on the container element
+  const [darkMode, setDarkMode] = useState(true);
+
+  // useState variable #2 (Scroll-to-top visibility toggle)
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  // ── Props data defined in App and passed down ─────────────────────
-  // name prop → Header
+  // Student Profile Data (Passed as props into Home)
   const studentName = 'Smit Makwana';
-
-  // themeColor prop → Header (inline style demonstration)
   const themeColor = '#7c3aed';
-
-  // rollNo prop → Header
   const rollNo = '24IT046';
-
-  // skillList prop → Skills (array rendered dynamically with .map())
   const additionalSkills = [
+    'React Router v6',
+    'State Hooks (useState)',
     'TypeScript',
     'Tailwind CSS',
     'REST APIs',
-    'Figma',
-    'Linux',
-    'Postman',
+    'Vite',
+    'Git & GitHub',
   ];
-  // ──────────────────────────────────────────────────────────────────
 
-  // Show scroll-to-top button after scrolling down
+  // Route change scroll restoration
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [pathname]);
+
+  // Handle dark/light mode toggle
+  const toggleTheme = () => {
+    setDarkMode((prev) => !prev);
+  };
+
+  // Sync theme class to document body
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.remove('light-theme');
+    } else {
+      document.body.classList.add('light-theme');
+    }
+  }, [darkMode]);
+
+  // Scroll position listener for scroll-to-top button
   useEffect(() => {
     const onScroll = () => setShowScrollTop(window.scrollY > 300);
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -63,32 +84,36 @@ function App() {
   };
 
   return (
-    <div className="app" id="app-root">
-      {/* ── Navigation (supplementary component) ── */}
-      <NavBar />
+    <div className={`app ${darkMode ? 'dark-theme' : 'light-theme'}`} id="app-root">
+      {/* ── Global Navigation (SPA with NavLink) ── */}
+      <NavBar darkMode={darkMode} toggleTheme={toggleTheme} />
 
-      {/* ── Hero Section ── */}
-      {/* name, themeColor, rollNo passed as props */}
-      <Header
-        name={studentName}
-        themeColor={themeColor}
-        rollNo={rollNo}
-      />
+      {/* ── Client-Side Routing via React Router v6 ── */}
+      <Routes>
+        {/* Route 1: Home ("/") */}
+        <Route
+          path="/"
+          element={
+            <Home
+              studentName={studentName}
+              themeColor={themeColor}
+              rollNo={rollNo}
+              additionalSkills={additionalSkills}
+            />
+          }
+        />
 
-      {/* ── About Section ── */}
-      {/* Self-contained, no props required */}
-      <About />
+        {/* Route 2: Projects ("/projects") */}
+        <Route path="/projects" element={<ProjectsPage />} />
 
-      {/* ── Skills Section ── */}
-      {/* skillList prop passed — renders dynamically using .map() */}
-      <Skills skillList={additionalSkills} />
+        {/* Route 3: Contact ("/contact") — Controlled Form with useState */}
+        <Route path="/contact" element={<Contact />} />
 
-      {/* ── Projects Section (Post-Lab Assignment) ── */}
-      {/* Self-contained, renders hardcoded 3 projects */}
-      <Projects />
+        {/* Route 4: 404 Fallback ("*") — Supplementary Problem */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
 
-      {/* ── Footer Section ── */}
-      {/* Self-contained contact / copyright info */}
+      {/* ── Site Footer ── */}
       <Footer />
 
       {/* ── Scroll to Top Button ── */}

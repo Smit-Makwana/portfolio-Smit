@@ -14,8 +14,8 @@ function About() {
   ];
 
   const infoItems = [
-    { icon: '🎓', label: 'Institution', value: 'Gujarat Technological University' },
-    { icon: '📚', label: 'Branch',      value: 'Computer Engineering' },
+    { icon: '🎓', label: 'Institution', value: 'CHARUSAT University' },
+    { icon: '📚', label: 'Branch',      value: 'Information Technology' },
     { icon: '📅', label: 'Semester',    value: '5th Semester' },
     { icon: '📋', label: 'Subject',     value: 'ITUE301 – Adv. Web Dev.' },
   ];

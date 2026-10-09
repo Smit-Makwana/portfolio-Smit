@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import './Header.css';
 
 /**
@@ -17,10 +18,6 @@ function Header({ name, themeColor, rollNo }) {
     .join('')
     .slice(0, 2)
     .toUpperCase();
-
-  const scrollToSection = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-  };
 
   return (
     <section id="header" className="header section" aria-label="Hero Section">
@@ -59,24 +56,24 @@ function Header({ name, themeColor, rollNo }) {
           crafting pixel-perfect React experiences.
         </p>
 
-        {/* CTA Buttons */}
+        {/* CTA Buttons — Linked via React Router */}
         <div className="header__cta-group">
-          <button
+          <Link
+            to="/projects"
             id="header-cta-projects"
             className="btn btn--primary"
-            onClick={() => scrollToSection('projects')}
             aria-label="View my projects"
           >
             🚀 View Projects
-          </button>
-          <button
+          </Link>
+          <Link
+            to="/contact"
             id="header-cta-contact"
             className="btn btn--outline"
-            onClick={() => scrollToSection('footer')}
             aria-label="Get in touch"
           >
             ✉️ Get In Touch
-          </button>
+          </Link>
         </div>
 
         {/* Mini stats row */}
@@ -95,7 +92,7 @@ function Header({ name, themeColor, rollNo }) {
           </div>
           <div className="header__stat">
             <span className="header__stat-value">React</span>
-            <span className="header__stat-label">Focused</span>
+            <span className="header__stat-label">Router v6</span>
           </div>
         </div>
       </div>

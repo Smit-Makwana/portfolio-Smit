@@ -1,76 +1,96 @@
 import { useState, useEffect } from 'react';
+import { NavLink, Link } from 'react-router-dom';
 import './NavBar.css';
 
 /**
- * NavBar Component
- * Supplementary component as per practical requirements.
- * Highlights the currently visible section as the user scrolls.
+ * NavBar Component (Updated for Practical 2)
  *
- * Props: none (reads active section from scroll position internally)
+ * Requirements:
+ * - Uses Link / NavLink (not <a>) to prevent full page reloads.
+ * - Routes: Home ("/"), Projects ("/projects"), Contact ("/contact").
+ * - Incorporates Dark / Light mode toggle with useState from App.
  */
-function NavBar() {
-  const [activeSection, setActiveSection] = useState('header');
+function NavBar({ darkMode, toggleTheme }) {
   const [scrolled, setScrolled] = useState(false);
 
-  const navLinks = [
-    { id: 'header',   label: 'Home'   },
-    { id: 'about',    label: 'About'  },
-    { id: 'skills',   label: 'Skills' },
-    { id: 'projects', label: 'Projects' },
-    { id: 'footer',   label: 'Contact'},
-  ];
-
-  // Detect scroll to apply glass effect
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 40);
-
-      // Determine which section is in view
-      const sectionIds = navLinks.map((l) => l.id);
-      for (let i = sectionIds.length - 1; i >= 0; i--) {
-        const el = document.getElementById(sectionIds[i]);
-        if (el && window.scrollY >= el.offsetTop - 120) {
-          setActiveSection(sectionIds[i]);
-          break;
-        }
-      }
+      setScrolled(window.scrollY > 30);
     };
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToSection = (id) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
   return (
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`} role="navigation" aria-label="Main Navigation">
       <div className="container navbar__inner">
-        {/* Brand */}
-        <span className="navbar__brand">
-          &lt;Portfolio /&gt;
-        </span>
+        {/* Brand Link — Routes directly to Home without reload */}
+        <Link to="/" className="navbar__brand">
+          &lt;Smit.dev /&gt;
+        </Link>
 
-        {/* Navigation Links */}
-        <ul className="navbar__links" role="list">
-          {navLinks.map(({ id, label }) => (
-            <li key={id}>
-              <button
-                id={`nav-link-${id}`}
-                className={`navbar__link ${activeSection === id ? 'active' : ''}`}
-                onClick={() => scrollToSection(id)}
-                aria-current={activeSection === id ? 'page' : undefined}
+        <div className="navbar__right">
+          {/* SPA Navigation using NavLink from react-router-dom */}
+          <ul className="navbar__links" role="list">
+            <li>
+              <NavLink
+                to="/"
+                id="nav-link-home"
+                className={({ isActive }) => `navbar__link ${isActive ? 'active' : ''}`}
+                end
               >
-                {activeSection === id && <span className="navbar__dot" aria-hidden="true" />}
-                {label}
-              </button>
+                {({ isActive }) => (
+                  <>
+                    {isActive && <span className="navbar__dot" aria-hidden="true" />}
+                    Home
+                  </>
+                )}
+              </NavLink>
             </li>
-          ))}
-        </ul>
+
+            <li>
+              <NavLink
+                to="/projects"
+                id="nav-link-projects"
+                className={({ isActive }) => `navbar__link ${isActive ? 'active' : ''}`}
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && <span className="navbar__dot" aria-hidden="true" />}
+                    Projects
+                  </>
+                )}
+              </NavLink>
+            </li>
+
+            <li>
+              <NavLink
+                to="/contact"
+                id="nav-link-contact"
+                className={({ isActive }) => `navbar__link ${isActive ? 'active' : ''}`}
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && <span className="navbar__dot" aria-hidden="true" />}
+                    Contact
+                  </>
+                )}
+              </NavLink>
+            </li>
+          </ul>
+
+          {/* Dark / Light Mode Toggle Button (useState controlled) */}
+          <button
+            type="button"
+            id="theme-toggle-btn"
+            className="navbar__theme-btn"
+            onClick={toggleTheme}
+            aria-label={`Switch to ${darkMode ? 'light' : 'dark'} mode`}
+            title={`Switch to ${darkMode ? 'light' : 'dark'} mode`}
+          >
+            {darkMode ? '☀️' : '🌙'}
+          </button>
+        </div>
       </div>
     </nav>
   );
